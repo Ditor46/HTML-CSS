@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Noivos com SVG</title>
+    <style>
+        /* Definições de fonte */
+        @font-face {
+            font-family: 'adelia'; /* Nome que você dará à fonte */
+            src: url('file:///C:/Users/Diego%20Toribio/Documents/ESTUDOS/HTML-CSS/CANVAS2/Fontes%20para%20Nomes/adelia.ttf'); 
+        }
+        
+        @font-face {
+            font-family: 'Alika Misely'; /* Nome para outra fonte */
+            src: url('file:///C:/Users/Diego%20Toribio/Documents/ESTUDOS/HTML-CSS/CANVAS2/Fontes%20para%20Nomes/Alika%20Misely.ttf'); 
+        }
+
+        .input-noivos {
+            font-family: Arial, sans-serif; /* Padrão de fonte inicial */
+            margin-bottom: 10px;
+            width: 300px; /* Definindo uma largura para os campos */
+            padding: 5px; /* Adicionando um pouco de espaço interno */
+        }
+
+        label {
+            font-weight: bold; /* Deixando os rótulos em negrito */
+        }
+
+        svg {
+            border: 1px solid #ccc; /* Apenas para demarcar a área do SVG */
+            margin-top: 20px; /* Espaço acima do SVG */
+        }
+    </style>
+</head>
+<body>
+    <h1>Informações dos Noivos</h1>
+    <form>
+        <label for="nome-noivos">Nome dos Noivos:</label><br>
+        <input type="text" id="nome-noivos" class="input-noivos" value="Nome dos Noivos"><br>
+
+        <label for="font-select">Escolha a fonte:</label>
+        <select id="font-select" onchange="changeFont()">
+            <option value="Arial">Arial</option>
+            <option value="adelia">adelia</option>
+            <option value="Alika Misely">Alika Misely</option>
+            <!-- Adicione mais opções conforme necessário -->
+        </select><br>
+    </form>
+
+    <svg width="400" height="200">
+        <text id="noivos-text" x="10" y="40" font-family="Arial" font-size="30" fill="black">
+            Nome dos Noivos
+        </text>
+    </svg>
+
+    <script>
+        function changeFont() {
+            var font = document.getElementById("font-select").value;
+            var noivosText = document.getElementById("noivos-text");
+            noivosText.style.fontFamily = font; // Altera a fonte do texto SVG.
+            
+            // Atualiza o texto no SVG com o valor do input
+            var nomeNoivos = document.getElementById("nome-noivos").value;
+            noivosText.textContent = nomeNoivos; // Atualiza o conteúdo do texto SVG.
+        }
+
+        // Adicionando um evento para atualizar o SVG ao modificar o input
+        document.getElementById("nome-noivos").addEventListener("input", changeFont);
+    </script>
+</body>
+</html>

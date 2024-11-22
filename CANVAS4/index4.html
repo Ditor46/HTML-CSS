@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bin Packing Visualization with Item Spacing</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        canvas {
+            border: 1px solid #000;
+        }
+        select, button {
+            margin: 10px;
+        }
+        .list {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Lista de Caixas</h2>
+        <ul id="box-list">
+            <li>RC=B05, PC=90, HC=250, LC=250</li>
+            <li>RC=B06, PC=80, HC=165, LC=220</li>
+            <li>RC=A11, PC=120, HC=300, LC=300</li>
+        </ul>
+
+        <h2>Lista de Itens</h2>
+        <ul id="item-list">
+            <li>RI=CHANDON, PI=60, HI=210, LI=60</li>
+            <li>RI=TACA, PI=55, HI=200, LI=55</li>
+            <li>RI=PORTAJOIA, PI=40, HI=100, LI=100</li>
+            <li>RI=CAIXINHA, PI=40, HI=40, LI=40</li>
+            <li>RI=CANETA, PI=20, HI=150, LI=20</li>
+        </ul>
+
+        <h2>Seleção de Itens</h2>
+        <select id="item-select">
+            <option value="CHANDON">CHANDON</option>
+            <option value="TACA">TACA</option>
+            <option value="PORTAJOIA">PORTAJOIA</option>
+            <option value="CAIXINHA">CAIXINHA</option>
+            <option value="CANETA">CANETA</option>
+        </select>
+        <button onclick="addItem()">Adicionar Item</button>
+        <button onclick="finalizeSelection()">Finalizar Seleção</button>
+
+        <h3>Itens Selecionados</h3>
+        <ul id="selected-items-list"></ul>
+
+        <canvas id="canvas" width="1000" height="1000"></canvas>
+        <button onclick="downloadPDF()">Baixar PDF</button>
+        <button onclick="resetCanvas()">Resetar Canvas</button>
+    </div>
+
+    <script>
+        const items = {
+            CHANDON: { RI: 'CHANDON', PI: 60, HI: 210, LI: 60 },
+            TACA: { RI: 'TACA', PI: 55, HI: 200, LI: 55 },
+            PORTAJOIA: { RI: 'PORTAJOIA', PI: 40, HI: 100, LI: 100 },
+            CAIXINHA: { RI: 'CAIXINHA', PI: 40, HI: 40, LI: 40 },
+            CANETA: { RI: 'CANETA', PI: 20, HI: 150, LI: 20 }
+        };
+
+        const boxes = [
+            { RC: 'B05', PC: 90, HC: 250, LC: 250 },
+            { RC: 'B06', PC: 80, HC: 165, LC: 220 },
+            { RC: 'A11', PC: 120, HC: 300, LC: 300 }
+        ];
+
+        let selectedItems = [];
+        let canvasItems = [];
+        let draggingItem = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let chosenBox = null;
+
+        function addItem() {
+            const itemSelect = document.getElementById('item-select');
+            const selectedItem = itemSelect.value;
+            selectedItems.push(items[selectedItem]);
+
+            const listItem = document.createElement('li');
+            listItem.textContent = selectedItem;
+            listItem.onclick = function() {
+                selectedItems = selectedItems.filter(item => item.RI !== selectedItem);
+                listItem.remove();
+            };
+
+            document.getElementById('selected-items-list').appendChild(listItem);
+        }
+
+        function finalizeSelection() {
+            const adjustedBoxes = boxes.map(box => ({
+                ...box,
+                pc: box.PC - 5,
+                hc: box.HC - 10,
+                lc: box.LC - 10
+            })).filter(box => {
+                return selectedItems.every(item => box.pc >= item.PI);
+            });
+
+            selectedItems = selectedItems.map(item => ({
+                ...item,
+                pi: item.PI,
+                hi: item.HI + 10,
+                li: item.LI + 10
+            }));
+
+            chosenBox = null;
+            let chosenOrientation = null;
+
+            // Verificar todas as caixas e orientações possíveis e escolher a menor caixa possível
+            adjustedBoxes.forEach(box => {
+                const orientations = [
+                    { hc: box.hc, lc: box.lc }, // Orientação original
+                    { hc: box.lc, lc: box.hc }  // Orientação rotacionada
+                ];
+
+                orientations.forEach(orientation => {
+                    if (canFitItemsInBox(orientation, selectedItems) && itemsFitInsideBox(orientation, selectedItems)) {
+                        if (!chosenBox || (orientation.hc * orientation.lc < chosenBox.hc * chosenBox.lc)) {
+                            chosenBox = box;
+                            chosenOrientation = orientation;
+                        }
+                    }
+                });
+            });
+
+            if (chosenBox && chosenOrientation) {
+                alert(`A caixa escolhida é ${chosenBox.RC} com orientação ${chosenOrientation.hc === chosenBox.hc ? 'original' : 'rotacionada'}`);
+                drawCanvas(chosenOrientation);
+            } else {
+                alert('Nenhuma caixa disponível para acomodar os itens.');
+            }
+        }
+
+        function itemsFitInsideBox(box, items) {
+            for (let item of items) {
+                // Verificar se o item cabe na caixa em qualquer orientação
+                const itemFits = (item.hi <= box.hc && item.li <= box.lc) || (item.li <= box.hc && item.hi <= box.lc);
+                if (!itemFits) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function canFitItemsInBox(box, items) {
+            items.sort((a, b) => b.hi - a.hi); // Ordenar itens pela altura decrescente para melhor empacotamento
+
+            let currentX = 0;
+            let currentY = 0;
+            let rowHeight = 0;
+
+            for (let item of items) {
+                // Verificar se o item pode ser rotacionado para caber melhor
+                const itemOrientations = [
+                    { hi: item.hi, li: item.li }, // Orientação original
+                    { hi: item.li, li: item.hi }  // Orientação rotacionada
+                ];
+
+                let fits = false;
+
+                for (let orientation of itemOrientations) {
+                    if (currentX + orientation.li <= box.lc) {
+                        currentX += orientation.li;
+                        rowHeight = Math.max(rowHeight, orientation.hi);
+                        fits = true;
+                        break;
+                    }
+                }
+
+                if (!fits) {
+                    currentX = 0;
+                    currentY += rowHeight;
+                    rowHeight = 0;
+
+                    for (let orientation of itemOrientations) {
+                        if (currentX + orientation.li <= box.lc) {
+                            currentX += orientation.li;
+                            rowHeight = Math.max(rowHeight, orientation.hi);
+                            fits = true;
+                            break;
+                        }
+                    }
+
+                    if (!fits || currentY + rowHeight > box.hc) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        function drawCanvas(box) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(50, 50, box.lc * 3, box.hc * 3);
+
+            canvasItems = [];
+            let currentX = 50;
+            let currentY = 50;
+            const horizontalSpacing = (box.lc * 3 - selectedItems.reduce((sum, item) => sum + item.li * 3, 0)) / (selectedItems.length + 1);
+            const verticalSpacing = (box.hc * 3 - selectedItems.reduce((max, item) => Math.max(max, item.hi * 3), 0)) / 2;
+
+            selectedItems.forEach(item => {
+                const itemRect = {
+                    x: currentX + horizontalSpacing,
+                    y: currentY + verticalSpacing,
+                    width: item.li * 3,
+                    height: item.hi * 3,
+                    color: 'red',
+                    label: item.RI
+                };
+                canvasItems.push(itemRect);
+                drawItem(ctx, itemRect);
+
+                currentX += item.li * 3 + horizontalSpacing;
+                if (currentX + item.li * 3 > box.lc * 3) {
+                    currentX = 50;
+                    currentY += item.hi * 3 + verticalSpacing;
+                }
+            });
+
+            canvas.onmousedown = startDrag;
+            canvas.onmousemove = dragItem;
+            canvas.onmouseup = stopDrag;
+        }
+
+        function drawItem(ctx, item) {
+            ctx.strokeStyle = item.color;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(item.x, item.y, item.width, item.height);
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+            ctx.fillRect(item.x, item.y, item.width, item.height);
+            ctx.fillStyle = 'black';
+            ctx.fillText(item.label, item.x + 5, item.y + 15);
+        }
+
+        function startDrag(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            for (let item of canvasItems) {
+                if (
+                    mouseX > item.x &&
+                    mouseX < item.x + item.width &&
+                    mouseY > item.y &&
+                    mouseY < item.y + item.height
+                ) {
+                    draggingItem = item;
+                    offsetX = mouseX - item.x;
+                    offsetY = mouseY - item.y;
+                    break;
+                }
+            }
+        }
+
+        function dragItem(e) {
+            if (draggingItem) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                draggingItem.x = mouseX - offsetX;
+                draggingItem.y = mouseY - offsetY;
+
+                redrawCanvas();
+            }
+        }
+
+        function stopDrag() {
+            draggingItem = null;
+        }
+
+        function redrawCanvas() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Redesenhar o retângulo da caixa
+            if (chosenBox) {
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(50, 50, chosenBox.lc * 3, chosenBox.hc * 3);
+            }
+
+            // Desenhar todos os itens no canvas
+            canvasItems.forEach(item => drawItem(ctx, item));
+        }
+
+        function downloadPDF() {
+            const canvas = document.getElementById('canvas');
+            const link = document.createElement('a');
+            link.download = 'box_layout.pdf';
+            link.href = canvas.toDataURL('application/pdf');
+            link.click();
+        }
+
+        function resetCanvas() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvasItems = [];
+        }
+    </script>
+</body>
+</html>

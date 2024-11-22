@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas com Exportação para PDF</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+    <!-- Adicione o jsPDF via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <canvas id="meuCanvas" width="400" height="400"></canvas>
+    <br>
+    <input type="file" id="upload" accept="image/jpeg" multiple>
+    <br>
+    <button id="increase">Aumentar 10%</button>
+    <button id="decrease">Diminuir 10%</button>
+    <button id="downloadPDF">Download PDF</button>
+    <button id="delete">Excluir Último Objeto</button> <!-- Botão para excluir o último objeto -->
+    
+    <script>
+        const canvas = document.getElementById('meuCanvas');
+        const ctx = canvas.getContext('2d');
+        let draggedItem = null;
+        let lastSelectedItem = null;
+        let offsetX, offsetY;
+
+// Strings que representam os nomes
+let objects2 = [
+            { text: 'Nome do Noivo', x: 50, y: 50, fontSize: 20, isDragging: true },
+            { text: 'Nome da Noiva', x: 50, y: 100, fontSize: 20, isDragging: false },
+        ];
+
+        // Função para desenhar objetos no canvas
+        function drawObjects() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            objects.forEach(obj => {
+                ctx.font = `${obj.fontSize}px Arial`;
+                ctx.fillText(obj.text, obj.x, obj.y);
+            });
+        }
+        / Objetos para desenhar
+        let objects = [
+            { type: 'rect', x: 50, y: 50, width: 100, height: 100, color: 'red', isDragging: false },
+            { type: 'circle', x: 200, y: 200, radius: 50, color: 'blue', isDragging: false },
+        ];
+
+        // Função para desenhar objetos no canvas
+        function drawObjects() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            objects.forEach(obj => {
+                if (obj.type === 'rect') {
+                    ctx.fillStyle = obj.color;
+                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                } else if (obj.type === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = obj.color;
+                    ctx.fill();
+                    ctx.closePath();
+                } else if (obj.type === 'image') {
+                    ctx.drawImage(obj.image, obj.x, obj.y, obj.width, obj.height);
+                }
+            });
+        }
+
+        // Manipuladores de eventos para arrastar e soltar
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            objects.some(obj => {
+                if (isMouseOverObject(mouseX, mouseY, obj)) {
+                    offsetX = mouseX - obj.x;
+                    offsetY = mouseY - obj.y;
+                    draggedItem = obj;
+                    lastSelectedItem = obj;
+                    obj.isDragging = true;
+                    return true;
+                }
+                return false;
+            });
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (draggedItem) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                draggedItem.x = mouseX - offsetX;
+                draggedItem.y = mouseY - offsetY;
+                drawObjects();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (draggedItem) {
+                draggedItem.isDragging = false;
+                draggedItem = null;
+            }
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            if (draggedItem) {
+                draggedItem.isDragging = false;
+                draggedItem = null;
+            }
+        });
+
+        // Função para verificar se o mouse está sobre um objeto
+        function isMouseOverObject(mouseX, mouseY, obj) {
+            if (obj.type === 'rect' || obj.type === 'image') {
+                return mouseX >= obj.x && mouseX <= obj.x + obj.width &&
+                       mouseY >= obj.y && mouseY <= obj.y + obj.height;
+            } else if (obj.type === 'circle') {
+                const dx = mouseX - obj.x;
+                const dy = mouseY - obj.y;
+                return dx * dx + dy * dy <= obj.radius * obj.radius;
+            }
+            return false;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // Manipuladores de eventos para arrastar e soltar
+ canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            objects.some(obj => {
+                // Verifica se o mouse está sobre o texto
+                const textWidth = ctx.measureText(obj.text).width;
+                const textHeight = parseInt(ctx.font, 10); // Tamanho da fonte
+
+                if (mouseX >= obj.x && mouseX <= obj.x + textWidth && 
+                    mouseY >= obj.y - textHeight && mouseY <= obj.y) {
+                    offsetX = mouseX - obj.x;
+                    offsetY = mouseY - obj.y;
+                    draggedItem = obj;
+                    lastSelectedItem = obj;
+                    obj.isDragging = true;
+                    return true;
+                }
+                return false;
+            });
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (draggedItem) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                draggedItem.x = mouseX - offsetX;
+                draggedItem.y = mouseY - offsetY;
+                drawObjects();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (draggedItem) {
+                draggedItem.isDragging = false;
+                draggedItem = null;
+            }
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            if (draggedItem) {
+                draggedItem.isDragging = false;
+                draggedItem = null;
+            }
+        });
+
+        // Event listener para carregar múltiplas imagens
+        document.getElementById('upload').addEventListener('change', function(event) {
+            const files = event.target.files;
+            const maxFiles = 10;
+            const numFiles = Math.min(files.length, maxFiles);
+
+            for (let i = 0; i < numFiles; i++) {
+                const file = files[i];
+                if (file && file.type.startsWith('image/')) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+                        const maxSize = 100;
+
+                        // Redimensiona a imagem mantendo a proporção
+                        if (width > height) {
+                            if (width > maxSize) {
+                                height *= maxSize / width;
+                                width = maxSize;
+                            }
+                        } else {
+                            if (height > maxSize) {
+                                width *= maxSize / height;
+                                height = maxSize;
+                            }
+                        }
+
+                        objects.push({ type: 'image', x: Math.random() * (canvas.width - width), y: Math.random() * (canvas.height - height), width, height, image: img, isDragging: false });
+                        drawObjects();
+                    };
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        // Função para aumentar ou diminuir o último item selecionado
+        function resizeLastSelected(factor) {
+            if (lastSelectedItem) {
+                if (lastSelectedItem.type === 'rect' || lastSelectedItem.type === 'image') {
+                    lastSelectedItem.width *= factor;
+                    lastSelectedItem.height *= factor;
+                } else if (lastSelectedItem.type === 'circle') {
+                    lastSelectedItem.radius *= factor;
+                }
+                drawObjects();
+            }
+        }
+
+        // Event listeners para botões de aumento e redução
+        document.getElementById('increase').addEventListener('click', () => {
+            resizeLastSelected(1.1); // Aumenta 10%
+        });
+
+        document.getElementById('decrease').addEventListener('click', () => {
+            resizeLastSelected(0.9); // Diminui 10%
+        });
+
+        document.getElementById('downloadPDF').addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('portrait', 'px', [canvas.width, canvas.height]);
+
+            // Adicione a imagem do canvas ao PDF
+            const dataURL = canvas.toDataURL('image/jpeg');
+            pdf.addImage(dataURL, 'JPEG', 0, 0, canvas.width, canvas.height);
+            pdf.save('canvas.pdf');
+        });
+        document.getElementById('delete').addEventListener('click', () => {
+    if (lastSelectedItem) {
+        objects = objects.filter(obj => obj !== lastSelectedItem); // Remove o objeto selecionado da lista
+        lastSelectedItem = null; // Reseta a referência ao último objeto selecionado
+        drawObjects(); // Redesenha os objetos restantes
+    }
+});
+
+        drawObjects();
+    </script>
+</body>
+</html>

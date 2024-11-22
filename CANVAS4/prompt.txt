@@ -1,0 +1,65 @@
+crie um código html para uma página que tenha a seguinte configuração: 
+
+Objetivo: Utilizr um algaritmo do tipo Bin Pacjing para onseguir o menor tamanho de caixa para que caibam os itens escolhidos.
+Considere a unidade de valores em milímetros
+
+crie uma lista de tamanhos de caixas com referência (RC), profundidade (PC), altura (HC) e Largura (LC).
+vamos iniciar com 3 possibilidades:
+RC=B05, PC=90, HC=250, LC=250
+RC=B06, PC=80, HC=165, LC=220
+RC=A11, PC=120, HC=300, LC=300
+crie uma visualização dessa lista.
+
+crie uma lista de tamanhos de itens referência (RI), profundidade (PI), altura (HI) e Largura (LI)
+vamos iniciar com 5 possibilidades:
+RI=CHANDON, PI=60, HI=210, LI=60
+RI=TACA, PI=55, HI=200, LI=55
+RI=PORTAJOIA, PI=40, HI=100, LI=100
+RI=CAIXINHA, PI=40, HI=40, LI=40
+RI=CANETA, PI=20, HI=150, LI=20
+crie uma visualização dessa outra lista.
+
+em seguida crie uma estrutura para que o usuário possa fazer a seleção de um ou mais itens para uma caixa por meio de um dropbox e um botão de inclusão.
+crie uma visualização dessa estrutura como lista.
+crie um botão para que o usuário possa demostrar que terminou de fazer as escolhas de itens, e que seja escolhida a menor caixa possível que caibam os itens escolhidos.
+A caixa pode mudar de orientação, horizontalxvertical ou verticalxhorizontal para melhor acomodar os itens.
+Mostre a caixa e a orientação da caixa ideal escolhida.
+
+
+Vamos as condições:
+
+-para considerar o valor do tamanho da caixa, o item não pode ter o valor justo com o valor da caixa então vamos configurar da seguinte forma:
+pc=PC-5, hc=HC-10 e lc=LC-10. Vamos passar a considerar a caixa com essas novas variáveis de comparação.
+
+-para considerar o valor do tamanho de cada item, o item não pode ter o valor justo com o valor da caixa então vamos configurar da seguinte forma:
+pi=PI, hi=HI+10 e li=LI+10. Vamos passar a considerar o item com essas novas variáveis de comparação.
+
+-descartar caixas que tenham o "pc" menor que o "pi".
+
+-os itens não podem ficar sobrepostos na caixa.
+
+- como acomodar os itens nas caixas para achar o "hc" e o "lc" ideais, vamos dividir a caixa em colunas que vão receber os itens, a largura do item será a largura de cada coluna.:
+inicie a comparação do ponto superior esquedo da caixa. insira o item que tiver o valor do "hi" mais alto. Só devem ser consideradas as caixas com essa condição. Essa seria a primeira coluna.
+para acomodar os outros itens seguiremos fazendo colunas. insira o segundo item logo após o ponto que primeiro item tenha terminado com alinhamento superior. nessa proxima coluna, apos ser inserido o segundo item, se tiver algum outro item que couber na parte inferior da coluna pode ser inserido.
+EX: coluna 1,itm 1, coluna 2, item 2 e 3, se os hi de cada um dos itens não superar o hc da caixa.então se não tiver nenhum item nessa condição, o item 3 iria para uma terceira coluna.
+Considerar que a hc e o lc podem ser trocados, mudando a orientação da caixa para horizontal ou vertical conforme a melhor disposição dos itens.
+faça uma estrutura para que o item possa ser excluio da seleção se foi selecionado por engano
+
+podem ser adicionados mais de um item por caixa
+
+Após a escolha da referencia da Caixa ideal, retorne um texto com a referencia da caixa escolhida, seguido pela orientação ideal.
+
+em seguida crie um HTML canva de 1000x1000 pixels na tela, 
+crie um png retangulo de linhas pretas e interior transparente representando o "HC" e "LC".
+crie pngs retangulos de vermelhas e fundo transparente representando os "HI" e "LI" de todos os itens selecionados e no interior da representação anterior.
+como na lógica da escolha de caixas, o interior do retangulo de contorno preto será dividido em colunas e os relangulos de contorno vermelho que representam os itens devem seguir sendo acomodados em colunas da esquerda para a direita.
+se uma coluna dessas couberem dois itens em sua altura, ele pode ser inserido para seguir a logica do tamanho da caixa.
+leve em conta que devem ser dividos os espaçamentos entre as colunas de itens em relação a largura do retangulo de contorno preto. se uma coluna tiver um ou mais itens na altura, dividir o espaçamento entre os itens para centraliza-los dentro do retangulo de contorno preto.
+
+em seguida, faça um botão para baixar esse arquivo em pdf.
+em seguida, faça um botão para resetar e resetar o canva. mas não a lista de escolha de itens por caixa.
+
+
+
+
+

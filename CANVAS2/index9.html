@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Noivos com SVG</title>
+    <style>
+        @font-face {
+            font-family: 'adelia'; 
+            src: url('file:///C:/Users/Diego%20Toribio/Documents/ESTUDOS/HTML-CSS/CANVAS2/Fontes%20para%20Nomes/adelia.ttf'); 
+        }
+
+        @font-face {
+            font-family: 'Alika Misely'; 
+            src: url('file:///C:/Users/Diego%20Toribio/Documents/ESTUDOS/HTML-CSS/CANVAS2/Fontes%20para%20Nomes/Alika%20Misely.ttf'); 
+        }
+
+        .input-noivos, .input-auxiliar {
+            font-family: Arial, sans-serif; 
+            margin-bottom: 10px;
+            width: 480px; 
+            padding: 10px; 
+            text-align: center;
+        }
+
+        label { font-weight: bold; }
+        svg { border: 1px solid #ccc; margin-top: 20px; display: block; text-align: center; }
+        button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>Brasões</h1>
+    <form>
+        <label for="brasoes">Importar Brasão (SVG):</label><br>
+        <input type="file" id="brasoes" accept=".svg"><br>
+    </form>
+    
+    <button id="remove-brasao" style="display:none;">Remover Brasão</button>
+    <button id="reset-svg" style="display:none;">Resetar SVG</button>
+
+    <h1>Nome dos Noivos</h1>
+    <form>
+        <label for="nome-noivos">Nome dos Noivos:</label><br>
+        <input type="text" id="nome-noivos" class="input-noivos" value="Nome dos Noivos"><br>
+
+        <label for="font-select">Escolha a fonte:</label>
+        <select id="font-select" onchange="changeFont()">
+            <option value="Arial">Arial</option>
+            <option value="adelia">adelia</option>
+            <option value="Alika Misely">Alika Misely</option>
+        </select><br>
+    </form>
+
+    <h1>Texto Auxiliar</h1>
+    <form>
+        <label for="texto-auxiliar">Texto Auxiliar:</label><br>
+        <input type="text" id="texto-auxiliar" class="input-auxiliar" value="convidam para o casamento"><br>
+
+        <label for="font-select-auxiliar">Escolha a fonte:</label>
+        <select id="font-select-auxiliar" onchange="changeFont()">
+            <option value="Arial">Arial</option>
+            <option value="adelia">adelia</option>
+            <option value="Alika Misely">Alika Misely</option>
+        </select><br>
+    </form>
+
+    <h1>Iniciais dos Noivos</h1>
+    <form>
+        <label for="iniciais-noivos">Iniciais dos Noivos:</label><br>
+        <input type="text" id="iniciais-noivos" class="input-noivos" value="A & B"><br>
+
+        <label for="font-select-iniciais">Escolha a fonte:</label>
+        <select id="font-select-iniciais" onchange="changeIniciaisFont()">
+            <option value="Arial">Arial</option>
+            <option value="adelia">adelia</option>
+            <option value="Alika Misely">Alika Misely</option>
+        </select><br>
+    </form>
+
+    <svg id="svg-element" width="500" height="350">
+        <text id="noivos-text" x="250" y="210" font-family="Arial" font-size="30" fill="black" text-anchor="middle">Nome dos Noivos</text>
+        <text id="auxiliar-text" x="250" y="260" font-family="Arial" font-size="15" fill="black" text-anchor="middle">convidam para o casamento</text>
+        <text id="iniciais-text" x="250" y="180" font-family="Arial" font-size="25" fill="black" text-anchor="middle">A & B</text>
+        
+        <!-- Grupo para o brasão -->
+        <g id="brasao-group" transform="translate(0, 0)">
+            <!-- O brasão será adicionado aqui -->
+        </g>
+    </svg>
+
+    <button id="export-button">Exportar SVG</button>
+
+    <h1>Controles</h1>
+    <label for="element-select">Escolha o Elemento</label>
+    <select id="element-select">
+        <option value="noivos">Nome dos Noivos</option>
+        <option value="iniciais">Iniciais</option>
+        <option value="auxiliar">Texto Auxiliar</option>
+        <option value="brasao">Brasão</option>
+    </select>
+
+    <!-- Botões para mover o texto ou brasão escolhido -->
+    <button id="move-up">Subir</button>
+    <button id="move-down">Descer</button>
+    <button id="move-left">Esquerda</button>
+    <button id="move-right">Direita</button>
+
+    <!-- Botões para aumentar e diminuir o tamanho do texto -->
+    <button id="increase-size">Aumentar Tamanho</button>
+    <button id="decrease-size">Diminuir Tamanho</button>
+
+    <script>
+        var initialContent = document.getElementById("svg-element").innerHTML;
+
+        function changeFont() {
+            var noivosText = document.getElementById("noivos-text");
+            var auxiliarText = document.getElementById("auxiliar-text");
+
+            // Atualiza as fontes dos textos
+            noivosText.style.fontFamily = document.getElementById("font-select").value;
+            auxiliarText.style.fontFamily = document.getElementById("font-select-auxiliar").value;
+
+            // Atualiza o conteúdo dos textos
+            noivosText.textContent = document.getElementById("nome-noivos").value;
+            auxiliarText.textContent = document.getElementById("texto-auxiliar").value;
+        }
+
+        function changeIniciaisFont() {
+            var iniciaisText = document.getElementById("iniciais-text");
+            iniciaisText.style.fontFamily = document.getElementById("font-select-iniciais").value;
+            iniciaisText.textContent = document.getElementById("iniciais-noivos").value;
+        }
+
+        // Função para lidar com a importação do brasão
+        document.getElementById("brasoes").addEventListener("change", function(event) {
+            var file = event.target.files[0];
+            if (file && file.type === "image/svg+xml") {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var svgContent = e.target.result;
+                    var brasaoGroup = document.getElementById("brasao-group");
+                    brasaoGroup.innerHTML = svgContent; // Adiciona o brasão ao grupo
+
+                    // Exibe os botões de remover e resetar
+                    document.getElementById("remove-brasao").style.display = "inline";
+                    document.getElementById("reset-svg").style.display = "inline";
+                };
+                reader.readAsText(file); // Lê o arquivo SVG como texto
+            } else {
+                alert("Por favor, selecione um arquivo SVG.");
+            }
+        });
+
+        document.getElementById("remove-brasao").addEventListener("click", function() {
+            var brasaoGroup = document.getElementById("brasao-group");
+            brasaoGroup.innerHTML = ''; // Remove o brasão
+            this.style.display = "none"; // Oculta o botão de remover
+            document.getElementById("reset-svg").style.display = "inline"; // Exibe o botão de resetar
+        });
+
+        document.getElementById("reset-svg").addEventListener("click", function() {
+            var svgElement = document.getElementById("svg-element");
+            svgElement.innerHTML = initialContent; // Restaura o conteúdo inicial do SVG
+            document.getElementById("brasao-group").innerHTML = ''; // Limpa o brasão do grupo
+            this.style.display = "none"; // Oculta o botão de resetar
+            document.getElementById("remove-brasao").style.display = "none"; // Oculta o botão de remover
+        });
+
+        // Funções para mover o texto ou brasão selecionado
+        function moveElement(dx, dy) {
+            var selectedElement = document.getElementById("element-select").value;
+            var textElement;
+
+            if (selectedElement === "noivos") {
+                textElement = document.getElementById("noivos-text");
+            } else if (selectedElement === "iniciais") {
+                textElement = document.getElementById("iniciais-text");
+            } else if (selectedElement === "auxiliar") {
+                textElement = document.getElementById("auxiliar-text");
+            } else if (selectedElement === "brasao") {
+                var brasaoGroup = document.getElementById("brasao-group");
+                var currentTransform = brasaoGroup.getAttribute("transform") || "translate(0, 0)";
+                var translateValues = currentTransform.match(/translate\(([-0-9.]+), ([-0-9.]+)\)/);
+
+                var x = translateValues ? parseFloat(translateValues[1]) : 0;
+                var y = translateValues ? parseFloat(translateValues[2]) : 0;
+
+                brasaoGroup.setAttribute("transform", `translate(${x + dx}, ${y + dy})`);
+                return; // Retorna para não mover textos
+            }
+
+            var currentX = parseFloat(textElement.getAttribute("x"));
+            var currentY = parseFloat(textElement.getAttribute("y"));
+            textElement.setAttribute("x", currentX + dx);
+            textElement.setAttribute("y", currentY + dy);
+        }
+
+        document.getElementById("move-up").addEventListener("click", function() {
+            moveElement(0, -3); // Move 3 pixels para cima
+        });
+
+        document.getElementById("move-down").addEventListener("click", function() {
+            moveElement(0, 3); // Move 3 pixels para baixo
+        });
+
+        document.getElementById("move-left").addEventListener("click", function() {
+            moveElement(-3, 0); // Move 3 pixels para a esquerda
+        });
+
+        document.getElementById("move-right").addEventListener("click", function() {
+            moveElement(3, 0); // Move 3 pixels para a direita
+        });
+
+        // Funções para aumentar e diminuir o tamanho do texto
+        document.getElementById("increase-size").addEventListener("click", function() {
+            var selectedElement = document.getElementById("element-select").value;
+            var textElement;
+
+            if (selectedElement === "noivos") {
+                textElement = document.getElementById("noivos-text");
+            } else if (selectedElement === "iniciais") {
+                textElement = document.getElementById("iniciais-text");
+            } else if (selectedElement === "auxiliar") {
+                textElement = document.getElementById("auxiliar-text");
+            }
+
+            var currentSize = parseFloat(textElement.getAttribute("font-size"));
+            textElement.setAttribute("font-size", currentSize * 1.05); // Aumenta o tamanho em 5%
+        });
+
+        document.getElementById("decrease-size").addEventListener("click", function() {
+            var selectedElement = document.getElementById("element-select").value;
+            var textElement;
+
+            if (selectedElement === "noivos") {
+                textElement = document.getElementById("noivos-text");
+            } else if (selectedElement === "iniciais") {
+                textElement = document.getElementById("iniciais-text");
+            } else if (selectedElement === "auxiliar") {
+                textElement = document.getElementById("auxiliar-text");
+            }
+
+            var currentSize = parseFloat(textElement.getAttribute("font-size"));
+            textElement.setAttribute("font-size", currentSize * 0.95); // Diminui o tamanho em 5%
+        });
+
+        // Adicionando eventos para atualizar o SVG ao modificar os inputs
+        document.getElementById("nome-noivos").addEventListener("input", changeFont);
+        document.getElementById("texto-auxiliar").addEventListener("input", changeFont);
+        document.getElementById("iniciais-noivos").addEventListener("input", changeIniciaisFont);
+
+        // Função para exportar o SVG como arquivo SVG
+        document.getElementById("export-button").addEventListener("click", function() {
+            var svgElement = document.getElementById("svg-element");
+            var svgData = new XMLSerializer().serializeToString(svgElement);
+
+            // Cria um Blob para o SVG
+            var svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            var url = URL.createObjectURL(svgBlob);
+
+            // Cria um link de download
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = "nome_dos_noivos.svg"; // Nome do arquivo a ser baixado
+            document.body.appendChild(a); // Adiciona o link ao body
+            a.click(); // Simula um clique no link para iniciar o download
+            document.body.removeChild(a); // Remove o link após o download
+        });
+    </script>
+</body>
+</html>

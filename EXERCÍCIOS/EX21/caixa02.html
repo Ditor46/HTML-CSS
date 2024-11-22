@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>grouping tags</title>
+    <style>
+        header{
+        height: 100px;
+        background-color: lightgray;
+        padding: 20px;
+        margin-bottom: 20px;
+        }
+
+        nav{
+            background-color: black;
+            padding: 5px;
+            box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.200);
+            }
+            /*
+            box-shadow: deslocH deslocV Blur Cor  
+            */
+            nav > a{
+            text-decoration: none;
+            color: white;
+            padding: 5px;
+            font-weight: bold;
+            margin-right: 30px;
+            }
+
+            nav >a:hover{
+            text-decoration: underline
+            }
+                  
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: rgb(243, 243, 243);
+            padding: 20px;
+            }
+
+        main{
+        font-family: Arial, Hel
+        sans-serif;
+        background-color: rgb(232, 232, 233);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.200);
+        }
+
+        article{
+            background-color: blanchedalmond;
+            padding: 10px;
+        }
+
+        aside{
+            background-color: rgb(185, 152, 111);
+        
+
+        }
+
+        footer{
+        font-family: Arial, Hel
+        sans-serif;
+        background-color: gray;
+        padding: 10px;
+        margin-top: 20px;
+        text-align: center;
+        }
+        
+            footer > p{
+            margin: 0px;
+            }
+        
+    </style>
+</head>
+<body>
+    <header>
+        
+        <h1 id="titulo"> Meu site</h1>
+        <nav>
+            <a href="#">Link</a>
+            <a href="#">Link</a>
+            <a href="#">Link</a>
+            <a href="#">Link</a>
+            <a href="#">Link</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="assuntos">Assuntos
+            <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nemo, perferendis! Consectetur eveniet nostrum obcaecati! Ex, deserunt a quibusdam quisquam temporibus atque earum molestiae non optio rem at fuga eius odit?</p>
+        </section>
+        <section id="noticias">Notícias
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident eum consequuntur error, non mollitia nam atque expedita, voluptatibus nemo corrupti, quaerat est fugiat? Nemo, ab mollitia. Nesciunt necessitatibus fugiat temporibus.</p>
+            <article>
+                <h1>Notícias Locais
+                </h1>
+                <aside>
+                    <p>Artigo escrito por José da Silva</p>
+                </aside>
+            </article>
+        </section>
+
+
+    </main>
+
+    <footer>
+        <h2>Acesse mais noticias conosco</h2>
+
+    </footer>
+</body>
+</html>

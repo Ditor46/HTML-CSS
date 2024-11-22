@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolha da Caixa Ideal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        button {
+            margin-left: 10px;
+        }
+        #canvasContainer {
+            position: relative;
+            width: 1000px;
+            height: 1000px;
+            border: 1px solid #000;
+            margin-bottom: 20px;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Escolha da Caixa Ideal</h1>
+
+<h2>Lista de Caixas</h2>
+<table>
+    <thead>
+        <tr>
+            <th>RC</th>
+            <th>PC (mm)</th>
+            <th>HC (mm)</th>
+            <th>LC (mm)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>B05</td>
+            <td>90</td>
+            <td>250</td>
+            <td>250</td>
+        </tr>
+        <tr>
+            <td>B06</td>
+            <td>80</td>
+            <td>165</td>
+            <td>220</td>
+        </tr>
+        <tr>
+            <td>A11</td>
+            <td>120</td>
+            <td>300</td>
+            <td>300</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Lista de Itens</h2>
+<table>
+    <thead>
+        <tr>
+            <th>RI</th>
+            <th>PI (mm)</th>
+            <th>HI (mm)</th>
+            <th>LI (mm)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>CHANDON</td>
+            <td>60</td>
+            <td>210</td>
+            <td>60</td>
+        </tr>
+        <tr>
+            <td>TACA</td>
+            <td>55</td>
+            <td>200</td>
+            <td>55</td>
+        </tr>
+        <tr>
+            <td>PORTAJOIA</td>
+            <td>40</td>
+            <td>100</td>
+            <td>100</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Seleção de Itens</h2>
+<select id="itemSelect" multiple>
+    <option value="CHANDON">CHANDON</option>
+    <option value="TACA">TACA</option>
+    <option value="PORTAJOIA">PORTAJOIA</option>
+</select>
+<button id="addButton">Adicionar Item</button>
+
+<h2>Itens Selecionados</h2>
+<ul id="selectedItems"></ul>
+
+<button id="findBoxButton">Encontrar Caixa Ideal</button>
+<div id="result"></div>
+
+<!-- Canvas for drawing -->
+<div id="canvasContainer">
+    <canvas id="canvas" width="1000" height="1000"></canvas>
+</div>
+<button id="downloadButton">Baixar PDF</button>
+<button id="resetButton">Resetar Canvas</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script>
+const selectedItems = [];
+let boxPosition = { x: 10, y: 10 }; 
+let isDragging = false; 
+let selectedItem = null;
+let dragOffset = { x: 0, y: 0 };
+
+document.getElementById('addButton').addEventListener('click', function() {
+    const select = document.getElementById('itemSelect');
+    const selectedOptions = Array.from(select.selectedOptions);
+    selectedOptions.forEach(option => {
+        const itemText = option.text;
+        const itemValue = option.value;
+
+        selectedItems.push({ text: itemText, value: itemValue });
+        updateSelectedItems();
+    });
+});
+
+function updateSelectedItems() {
+    const list = document.getElementById('selectedItems');
+    list.innerHTML = "";
+    selectedItems.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.text;
+
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remover';
+        removeButton.addEventListener('click', function() {
+            removeItem(item);
+        });
+
+        li.appendChild(removeButton);
+        list.appendChild(li);
+    });
+}
+
+function removeItem(itemToRemove) {
+    const index = selectedItems.findIndex(item => item.value === itemToRemove.value);
+    if (index > -1) {
+        selectedItems.splice(index, 1);
+        updateSelectedItems();
+    }
+}
+
+document.getElementById('findBoxButton').addEventListener('click', function() {
+    if (selectedItems.length === 0) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.textContent = "Por favor, selecione ao menos um item.";
+        return;
+    }
+
+    const boxes = [
+        { RC: 'B05', PC: 90, HC: 250, LC: 250 },
+        { RC: 'B06', PC: 80, HC: 165, LC: 220 },
+        { RC: 'A11', PC: 120, HC: 300, LC: 300 }
+    ];
+
+    const items = {
+        'CHANDON': { PI: 60, HI: 210, LI: 60 },
+        'TACA': { PI: 55, HI: 200, LI: 55 },
+        'PORTAJOIA': { PI: 40, HI: 100, LI: 100 }
+    };
+
+    let bestBox = null;
+    let boxDimensions = null;
+
+    for (const box of boxes) {
+        const pc = box.PC - 5;  
+        const hc = box.HC - 10; 
+        const lc = box.LC - 10; 
+
+        let canFit = true;
+        let currentColumnHeight = 0;
+        let currentColumnWidth = 0;
+
+        for (const selectedItem of selectedItems) {
+            const item = items[selectedItem.value];
+
+            if (pc < item.PI || hc < (item.HI + 10)) { 
+                canFit = false;
+                break;
+            }
+
+            if (currentColumnHeight + item.HI > hc) {
+                currentColumnHeight = 0;
+                currentColumnWidth += item.LI + 10; 
+            }
+
+            currentColumnHeight += item.HI + 10; 
+        }
+
+        if (canFit) {
+            bestBox = box.RC;
+            boxDimensions = { LC: lc, HC: hc };
+            break;
+        }
+    }
+
+    const resultDiv = document.getElementById('result');
+    if (bestBox) {
+        resultDiv.textContent = `Caixa Ideal Encontrada: ${bestBox}`;
+        drawCanvas(bestBox, selectedItems, boxDimensions);
+    } else {
+        resultDiv.textContent = "Nenhuma caixa adequada encontrada para os itens selecionados.";
+    }
+});
+
+function drawCanvas(boxRef, selectedItems, boxDimensions) {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'black';
+    ctx.strokeRect(boxPosition.x, boxPosition.y, boxDimensions.LC, boxDimensions.HC);
+
+    const itemDetails = {
+        'CHANDON': { HI: 210, LI: 60 },
+        'TACA': { HI: 200, LI: 55 },
+        'PORTAJOIA': { HI: 100, LI: 100 }
+    };
+
+    let currentX = boxPosition.x;
+    const itemSpaces = 10;
+    let maxColumnHeight = 0;
+    let itemPositions = [];
+
+    selectedItems.forEach(item => {
+        const itemDimensions = itemDetails[item.value];
+        const itemHI = itemDimensions.HI;
+        const itemLI = itemDimensions.LI;
+
+        if (maxColumnHeight + itemHI > boxDimensions.HC) {
+            currentX += itemLI + itemSpaces;
+            maxColumnHeight = 0;
+        }
+
+        const itemY = boxPosition.y + maxColumnHeight + itemSpaces;
+        ctx.strokeStyle = 'red';
+        ctx.strokeRect(currentX, itemY, itemLI, itemHI);
+        
+        itemPositions.push({ name: item.value, x: currentX, y: itemY, width: itemLI, height: itemHI });
+        maxColumnHeight += itemHI + itemSpaces;
+    });
+
+    function getMousePos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+        };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+        const mousePos = getMousePos(e);
+
+        if (
+            mousePos.x >= boxPosition.x && 
+            mousePos.x <= boxPosition.x + boxDimensions.LC &&
+            mousePos.y >= boxPosition.y && 
+            mousePos.y <= boxPosition.y + boxDimensions.HC
+        ) {
+            isDragging = true;
+            dragOffset.x = mousePos.x - boxPosition.x;
+            dragOffset.y = mousePos.y - boxPosition.y;
+        } else {
+            selectedItem = itemPositions.find(item =>
+                mousePos.x >= item.x &&
+                mousePos.x <= item.x + item.width &&
+                mousePos.y >= item.y &&
+                mousePos.y <= item.y + item.height
+            );
+            if (selectedItem) {
+                isDragging = true;
+                dragOffset.x = mousePos.x - selectedItem.x;
+                dragOffset.y = mousePos.y - selectedItem.y;
+            }
+        }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const mousePos = getMousePos(e);
+
+            if (selectedItem) {
+                selectedItem.x = mousePos.x - dragOffset.x;
+                selectedItem.y = mousePos.y - dragOffset.y;
+            } else {
+                boxPosition.x = mousePos.x - dragOffset.x;
+                boxPosition.y = mousePos.y - dragOffset.y;
+            }
+
+            drawItems();
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+        selectedItem = null;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+        selectedItem = null;
+    });
+
+    function drawItems() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'black';
+        ctx.strokeRect(boxPosition.x, boxPosition.y, boxDimensions.LC, boxDimensions.HC);
+
+        itemPositions.forEach(item => {
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(item.x, item.y, item.width, item.height);
+        });
+    }
+}
+
+document.getElementById('downloadButton').addEventListener('click', function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Escolha da Caixa Ideal", 10, 10);
+
+    doc.save('caixa_ideal.pdf');
+});
+
+document.getElementById('resetButton').addEventListener('click', function() {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    selectedItems.length = 0;
+    updateSelectedItems();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    boxPosition = { x: 10, y: 10 };
+});
+
+function init() {
+    const select = document.getElementById('itemSelect');
+    const addButton = document.getElementById('addButton');
+    addButton.addEventListener('click', function() {
+        const selectedOptions = Array.from(select.selectedOptions);
+        selectedOptions.forEach(option => {
+            selectedItems.push({ text: option.text, value: option.value });
+        });
+        updateSelectedItems();
+    });
+}
+
+init();
+</script>
+
+</body>
+</html>

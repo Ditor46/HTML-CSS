@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Noivos</title>
+    <style>
+        /* Definições de fonte */
+        @font-face {
+            font-family: 'adelia'; /* Nome que você dará à fonte */
+            src: url('file:///C:/Users/Diego%20Toribio/Documents/ESTUDOS/HTML-CSS/CANVAS2/Fontes%20para%20Nomes/adelia.ttf'); /* Substitua pelo nome do arquivo da fonte */
+        }
+        
+        @font-face {
+            font-family: 'Alika Misely'; /* Nome para outra fonte */
+            src: url('file:///C:/Users/Diego%20Toribio/Documents/ESTUDOS/HTML-CSS/CANVAS2/Fontes%20para%20Nomes/Alika Misely.ttf'); /* Substitua pelo nome do arquivo da fonte */
+        }
+
+        .input-noivos {
+            font-family: Arial, sans-serif; /* Padrão de fonte inicial */
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Informações dos Noivos</h1>
+
+     <form>
+        <label for="nome-noivos">Nome dos Noivos:</label><br>
+        <input type="text" id="nome-noivos" class="input-noivos" value="Nome dos Noivos"><br>
+
+        <label for="font-select">Escolha a fonte:</label>
+        <select id="font-select" onchange="changeFont()">
+            <option value="Arial">Arial</option>
+            <option value="adelia">adelia</option>
+            <option value="Alika Misely">Alika Misely</option>
+            <!-- Adicione mais opções conforme necessário -->
+        </select>
+    </form>
+
+    <script>
+        function changeFont() {
+            var font = document.getElementById("font-select").value;
+            document.querySelector('.input-noivos').style.fontFamily = font;
+          }
+    </script>
+</body>
+</html>
